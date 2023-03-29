@@ -1,96 +1,47 @@
-use clap::{Arg, ArgAction, Command, ArgMatches};
+use std::any::type_name;
 use std::env;
+use std::format;
+use std::process::{Command as SysCommand, Output};
+
+use clap::{Arg, ArgAction, ArgMatches, Command};
+use serde::{Deserialize, Serialize};
+use serde::de::DeserializeOwned;
+
+use anyhow::{anyhow, Result as AnyhowResult};
+use harbor_cli::commands::OutputFormat;
+use harbor_cli::commands::{PilotCommand, PilotKind, PilotOpts};
 
 fn get_matches() -> ArgMatches {
-    Command::new("harbor-cli")
-    .about("SBOM Harbor Runtime CLI")
-    .version("0.0.1")
-    .subcommand_required(false)
-    .arg_required_else_help(true)
-    .author("SBOM Harbor Team")
-    .arg(
-        Arg::new("account")
-            .short('a')
-            .required(true)
-            .long("account")
-            .help("aws account id")
-            .action(ArgAction::Set)
-            .num_args(1),
-    )
-    .arg(
-        Arg::new("env")
-            .short('e')
-            .required(true)
-            .long("env")
-            .help("environment, ephemeral or permanent.")
-            .action(ArgAction::Set)
-            .num_args(1),
-    )
-    .subcommand(
-        Command::new("start")
-            .about("Start a Pilot Execution")
-    )
-    .get_matches()
-}
-
-fn get_gh_token() -> String {
-    match env::var("GH_FETCH_TOKEN") {
-        Ok(v) => v,
-        Err(e) => panic!("$GH_FETCH_TOKEN is not set ({})", e)
-    }
-}
-
-#[allow(dead_code)]
-fn get_cf_domain() -> String {
-    match env::var("CF_DOMAIN") {
-        Ok(v) => v,
-        Err(e) => panic!("$CF_DOMAIN is not set ({})", e)
-    }
-}
-
-async fn list_repos() {
-
-    let _token = get_gh_token();
-
-
-    // curl -X GET -u <UserName>:<Generated-Token>https://api.github.com/orgs/<Org-Name>/repos | grep -w clone_url
-
-    // let project: Option<Project> =
-    //     post(create_project_url.as_str(), token.as_str(), Some(project)).await?;
-    // let team: Option<Team> = get(url.as_str(), token.as_str(), None::<Team>).await?;
-
-    // Ok(team.unwrap());
-    // let octocrab = octocrab::OctocrabBuilder::new()
-    //     .personal_token(token)
-    //     .build()
-    //     .unwrap();
-    //
-    // let current_page = octocrab
-    //     .orgs("cmsgov")
-    //     .list_repos()
-    //     .repo_type(params::repos::Type::Sources)
-    //     .sort(params::repos::Sort::Pushed)
-    //     .direction(params::Direction::Descending)
-    //     .per_page(100)
-    //     .page(1u32)
-    //     .send()
-    //     .await;
-
-    // let mut current_page_value = match current_page {
-    //     Ok(v) => v,
-    //     Err(e) => panic!("Error trying to get page: {}", e)
-    // };
-    //
-    // let prs = current_page_value.take_items();
-    //
-    // for pr in prs.iter() {
-    //     println!("Value: {}", pr.url.as_str());
-    // }
+    return Command::new("harbor-cli")
+        .about("SBOM Harbor Runtime CLI")
+        .version("0.0.1")
+        .subcommand_required(false)
+        .arg_required_else_help(true)
+        .author("SBOM Harbor Team")
+        .arg(
+            Arg::new("account")
+                .short('a')
+                .required(true)
+                .long("account")
+                .help("aws account id")
+                .action(ArgAction::Set)
+                .num_args(1),
+        )
+        .arg(
+            Arg::new("env")
+                .short('e')
+                .required(true)
+                .long("env")
+                .help("environment, ephemeral or permanent.")
+                .action(ArgAction::Set)
+                .num_args(1),
+        )
+        .subcommand(Command::new("start").about("Start a Pilot Execution"))
+        .get_matches();
 }
 
 #[tokio::main]
 async fn main() {
-
     let matches = get_matches();
     if let Some(aws_account) = matches.get_one::<String>("account") {
         println!("Account Number: {}", aws_account);
@@ -98,11 +49,21 @@ async fn main() {
             println!("Environment: {}", env);
             match matches.subcommand() {
                 Some(("start", _)) => {
+
                     println!("Start matched, lets get it on");
-                    list_repos().await;
+
+                    PilotCommand::execute(
+                        PilotOpts {
+                            provider: PilotKind::GITHUB,
+                            output_format: Some(OutputFormat::Text),
+                            org: Some(String::from("cmsgov")),
+                            account_num: Some(aws_account.to_string()),
+                            env: Some(env.to_string()),
+                        }
+                    ).await.unwrap();
                 }
                 None => println!("Nothing"),
-                Some((&_, _)) => todo!()
+                Some((&_, _)) => todo!(),
             }
         }
     }

@@ -11,16 +11,29 @@ readme = "README.md"
 
 [dependencies]
 clap = { version = "4.1.4", default-features = true }
-serde = { version = "1.0.92", features = ["derive"] }
-serde_json = "1.0"
+serde = "1.0.147"
+serde_json = "1.0.87"
+serde_urlencoded = "0.7"
 tokio = { version = "1.25.0", features = ["full"] }
 thiserror = "1.0"
 percent-encoding = "^2.1.0"
+hyper = { version = "0.14", features = ["full"] }
+hyper-rustls = { version = "0.23.1", features =["http2"] }
+anyhow = "1.0.68"
+async-trait = "0.1.66"
+mongodb = { version = "2.3.1", features = ["aws-auth", "tokio-runtime"] }
+futures = "0.3.27"
+uuid = { version = "1.2.2", features = ["serde", "v4"] }
+cargo-modules = "0.7.5"
+
+[dependencies.harbcore]
+path = "../core"
+version = "0.1.0"
 
 [dependencies.platform]
 path = "../platform"
 version = "0.1.0"
 
-[dependencies.harbcore]
-path = "../core"
+[dependencies.harbor-client]
+path = "../client"
 version = "0.1.0"
