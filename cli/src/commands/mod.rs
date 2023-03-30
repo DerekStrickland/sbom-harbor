@@ -2,9 +2,10 @@ mod github;
 
 use std::env;
 use crate::commands::github::provider::GitHubProvider;
+use crate::commands::snyk::SnykProvider;
 use crate::Error;
 use async_trait::async_trait;
-// mod snyk;
+mod snyk;
 
 fn get_cf_domain() -> String {
     return match env::var("CF_DOMAIN") {
@@ -61,7 +62,7 @@ impl PilotFactory {
     pub fn new(pilot_ops: PilotOpts) -> Box<dyn Provider> {
         return match pilot_ops.provider {
             PilotKind::GITHUB => Box::new(GitHubProvider {}),
-            PilotKind::SNYK => panic!("Jon, return SnykProvider implementation"),
+            PilotKind::SNYK => Box::new(SnykProvider {}),
         };
     }
 }
