@@ -1,4 +1,5 @@
 mod github;
+
 use std::env;
 use crate::commands::github::provider::GitHubProvider;
 use crate::Error;
