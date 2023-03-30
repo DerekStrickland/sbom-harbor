@@ -14,8 +14,6 @@ use harbor_cli::commands::{PilotCommand, PilotKind, PilotOpts};
 const PROVIDER: &str = "provider";
 const GITHUB: &str = "github";
 const SNYK: &str = "snyk";
-
-const START: &str = "start";
 const CMS_ORG: &str = "cmsgov";
 
 fn get_matches() -> ArgMatches {
