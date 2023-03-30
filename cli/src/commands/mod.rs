@@ -6,6 +6,10 @@ use crate::Error;
 use async_trait::async_trait;
 // mod snyk;
 
+/// This function gets the value CF_DOMAIN
+/// environment variable.  We need to be able
+/// to use it to upload an SBOM.
+///
 fn get_cf_domain() -> String {
     return match env::var("CF_DOMAIN") {
         Ok(v) => v,
@@ -14,23 +18,54 @@ fn get_cf_domain() -> String {
 }
 
 #[async_trait]
+/// Provider trait.
+/// Defines the scan method that is
+/// used to start a scan of targets
+///
 pub trait Provider {
+    
+    /// Method to start the scan for a Provider
+    /// 
     async fn scan(&self);
 }
 
-pub enum PilotKind {
-    GITHUB,
-    SNYK,
+/// Enum to define the types of Providers
+/// we have available
+///
+pub enum ProviderKind {
+
+    /// GitHub type Provider
+    ///
+    GitHub,
+
+    /// Snyk type Provider
+    ///
+    Snyk,
 }
 
-// #[derive(Clone)]
-pub struct PilotOpts {
-    pub provider: PilotKind,
+/// Struct to define options related to a Provider
+///
+pub struct ProviderOpts {
+
+    /// Type of Provider
+    ///
+    pub provider: ProviderKind,
+
+    /// Output format type
+    ///
     pub output_format: Option<OutputFormat>,
+
+    /// Organization containing the targets
+    ///
     pub org: Option<String>,
 }
 
-impl Opts for PilotOpts {
+/// Opts implementation for ProviderOpts
+///
+impl Opts for ProviderOpts {
+
+    /// Method to format output for a given option
+    /// 
     fn format(&self) -> OutputFormat {
         let format = self.output_format.clone();
         match format {
@@ -40,28 +75,42 @@ impl Opts for PilotOpts {
     }
 }
 
-pub struct PilotCommand {}
+/// Struct definition for the ProviderCommand.
+/// This struct executes a command to start a
+/// Provider. Command pattern style.
+pub struct ProviderCommand {}
 
-impl PilotCommand {
-    pub async fn execute(_opts: PilotOpts) -> Result<(), Error> {
+/// Implementation for ProviderCommand
+/// Contains the execute() method
+///
+impl ProviderCommand {
 
-        let provider = PilotFactory::new(
-            _opts
-        );
-
+    /// Method to actually execute the Provider's scan
+    ///
+    pub async fn execute(opts: ProviderOpts) -> Result<(), Error> {
+        let provider = ProviderFactory::new(opts);
         provider.scan().await;
-
         Ok(())
     }
 }
 
-pub struct PilotFactory {}
+/// Struct definition for the ProviderFactory.
+/// This struct generates Provider types to crawl various services
+/// to extract SBOMs
+///
+pub struct ProviderFactory {}
 
-impl PilotFactory {
-    pub fn new(pilot_ops: PilotOpts) -> Box<dyn Provider> {
+/// Implementation for ProviderFactory
+///
+impl ProviderFactory {
+
+    /// Conventional 'new' method to actually create an instance
+    /// of ProviderFactory
+    ///
+    pub fn new(pilot_ops: ProviderOpts) -> Box<dyn Provider> {
         return match pilot_ops.provider {
-            PilotKind::GITHUB => Box::new(GitHubProvider {}),
-            PilotKind::SNYK => panic!("Jon, return SnykProvider implementation"),
+            ProviderKind::GitHub => Box::new(GitHubProvider {}),
+            ProviderKind::Snyk => panic!("Jon, return SnykProvider implementation"),
         };
     }
 }
@@ -69,13 +118,18 @@ impl PilotFactory {
 /// Allows specifying the output format.
 #[derive(Clone)]
 pub enum OutputFormat {
+
     /// Output as JSON.
+    ///
     Json,
+
     /// Output as plaintext.
+    ///
     Text,
 }
 
 /// Generic trait that all command options must implement.
+///
 trait Opts {
     fn format(&self) -> OutputFormat {
         OutputFormat::Text
@@ -83,10 +137,11 @@ trait Opts {
 }
 
 /// Generic Command trait that all command handlers must implement.
-trait Command<T>
-where
-    T: Opts + Send + Sync,
-{
+///
+trait Command<T> where T: Opts + Send + Sync {
+
+    /// Execute method actually runs the command
+    ///
     fn execute(opts: T) -> i32;
 }
 

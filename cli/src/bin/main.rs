@@ -1,15 +1,10 @@
-use std::any::type_name;
-use std::env;
-use std::format;
-use std::process::{Command as SysCommand, Output};
-
 use clap::{Arg, ArgAction, ArgMatches, Command};
-use serde::{Deserialize, Serialize};
-use serde::de::DeserializeOwned;
-
-use anyhow::{anyhow, Result as AnyhowResult};
 use harbor_cli::commands::OutputFormat;
-use harbor_cli::commands::{PilotCommand, PilotKind, PilotOpts};
+use harbor_cli::commands::{
+    ProviderCommand,
+    ProviderKind,
+    ProviderOpts
+};
 
 const PROVIDER: &str = "provider";
 const GITHUB: &str = "github";
@@ -48,9 +43,9 @@ async fn main() {
             // Run the GitHub Provider
             GITHUB => {
                 println!("Starting {} provider.", provider);
-                PilotCommand::execute(
-                    PilotOpts {
-                        provider: PilotKind::GITHUB,
+                ProviderCommand::execute(
+                    ProviderOpts {
+                        provider: ProviderKind::GitHub,
                         output_format: Some(OutputFormat::Text),
                         org: Some(CMS_ORG.to_string()),
                     }
