@@ -6,17 +6,6 @@ use crate::Error;
 use async_trait::async_trait;
 // mod snyk;
 
-/// This function gets the value CF_DOMAIN
-/// environment variable.  We need to be able
-/// to use it to upload an SBOM.
-///
-fn get_cf_domain() -> String {
-    return match env::var("CF_DOMAIN") {
-        Ok(v) => v,
-        Err(e) => panic!("$CF_DOMAIN is not set ({})", e),
-    };
-}
-
 #[async_trait]
 /// Provider trait.
 /// Defines the scan method that is
