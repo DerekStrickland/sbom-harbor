@@ -139,7 +139,7 @@ trait Command<T> where T: Opts + Send + Sync {
 fn get_env_var(variable_name: &str) -> Option<String> {
     return match env::var(variable_name) {
         Ok(v) => Some(v),
-        Err(e) => None,
+        Err(_e) => None,
     };
 }
 
